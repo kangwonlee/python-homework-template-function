@@ -12,6 +12,7 @@ Why do we want to do this assignment? What do we want to accomplish?
 ## Instructions:
 
 * How to do this homework
+* This repository is for a python assignment writing a function in `exercise.py`.
 * `classroom.yml` file is at `.github/workflows/` folder. `.github` folder is hidden on the Linux operating system but will be visible on the Github repository.
 * Please set `vars.PYTHON_GRADER_URL` in the `classroom.yml` in the repository settings (Settings > Secrets and Variables > Actions > Variables) to your grader image (e.g., ghcr.io/your-org/python-pytest:latest).
 * Set your AI feedback natural language in `classroom.yml`.
@@ -38,7 +39,8 @@ __Happy coding!__
 
 | Criteria | Points |
 |:--------:|:------:|
-| Is the code written according to Python syntax? | 2 |
+| Is the code written according to Python syntax? | 1 |
+| Does code respect style guidelines? | 1 |
 | Does the code satisfy the requirements? | 3 |
 
 ``From here is common to all assignments.``

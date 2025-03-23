@@ -33,7 +33,7 @@ jobs:
         echo "c_mnt=/app/workspace" >> $GITHUB_ENV
         if [ "${{ github.event_name }}" = "repository_dispatch" ]; then
           echo "image_url=${{ github.event.client_payload.image_url }}" >> $GITHUB_ENV
-        elif [ -n "${{ vars.PYTHON_GRADER_??? }}" ]; then
+        elif [ -n "${{ vars.PYTHON_GRADER_URL }}" ]; then
           echo "image_url=${{ vars.PYTHON_GRADER_URL }}" >> $GITHUB_ENV
         else
           echo "image_url=ghcr.io/${{ github.repository_owner }}/python-pytest-${ASSIGNMENT_NUM}:latest" >> $GITHUB_ENV
@@ -69,7 +69,17 @@ jobs:
         setup-command: "docker run --rm --user 1001:1001 --volume ${{ github.workspace }}:${{ env.c_mnt }} ${{ env.image_url }} python3 -m pip list"
         command:       "docker run --rm --user 1001:1001 --volume ${{ github.workspace }}:${{ env.c_mnt }} --env STUDENT_CODE_FOLDER=${{ env.c_code }} ${{ env.image_url }} python3 -m pytest --json-report --json-report-indent=4 --json-report-file=${{ env.c_json }}/${{ env.syntax }} ${{ env.c_test }}/test_syntax.py" # Run test in container
         timeout: 1
-        max-score: 3
+        max-score: 1
+
+    - name: check style
+      id: check-style
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: check style
+        setup-command: "docker run --rm --user 1001:1001 --volume ${{ github.workspace }}:${{ env.c_mnt }} ${{ env.image_url }} python3 -m pip list"
+        command:       "docker run --rm --user 1001:1001 --volume ${{ github.workspace }}:${{ env.c_mnt }} --env STUDENT_CODE_FOLDER=${{ env.c_code }} ${{ env.image_url }} python3 -m pytest --json-report --json-report-indent=4 --json-report-file=${{ env.c_json }}/${{ env.style }} ${{ env.c_test }}/test_style.py"
+        timeout: 1
+        max-score: 1
 
     - name: test results
       id: test-results
@@ -85,9 +95,10 @@ jobs:
       uses: classroom-resources/autograding-grading-reporter@v1
       env:
         CHECK-SYNTAX_RESULTS: "${{steps.check-syntax.outputs.result}}"
+        CHECK-STYLE_RESULTS: "${{steps.check-style.outputs.result}}"
         TEST-RESULTS_RESULTS: "${{steps.test-results.outputs.result}}"
       with:
-        runners: check-syntax,test-results
+        runners: check-syntax,check-style,test-results
 
     - name: AI Tutor
       id: ai-tutor
@@ -95,14 +106,15 @@ jobs:
       run: |
         docker run --rm --user 1001:1001 \
           --volume ${{ github.workspace }}:${{ env.c_mnt }} \
-          --env INPUT_REPORT-FILES="${{ env.c_mnt }}/${{ env.results }},${{ env.c_mnt }}/${{ env.syntax }}" \
+          --env INPUT_REPORT-FILES="${{ env.c_mnt }}/${{ env.results }},${{ env.c_mnt }}/${{ env.syntax }},${{ env.c_mnt }}/${{ env.style }}" \
           --env INPUT_STUDENT-FILES="${{ env.c_code }}/exercise.py" \
           --env INPUT_README-PATH="${{ env.c_code }}/README.md" \
           --env INPUT_API-KEY="${{ secrets.GOOGLE_API_KEY }}" \
-          --env INPUT_EXPLANATION-IN="English" \
+          --env INPUT_EXPLANATION-IN="Korean" \
           ${{ env.image_url }} \
           python3 ai_tutor/entrypoint.py >> $GITHUB_STEP_SUMMARY
-      timeout-minutes: 2
+
+      timeout-minutes: 2 # TODO : before edu-base v0.2.7, check output shows up correctly
 
     - name: upload artifacts
       id: artifacts
