@@ -109,8 +109,13 @@ jobs:
           --env INPUT_REPORT-FILES="${{ env.c_mnt }}/${{ env.results }},${{ env.c_mnt }}/${{ env.syntax }},${{ env.c_mnt }}/${{ env.style }}" \
           --env INPUT_STUDENT-FILES="${{ env.c_code }}/exercise.py" \
           --env INPUT_README-PATH="${{ env.c_code }}/README.md" \
-          --env INPUT_API-KEY="${{ secrets.GOOGLE_API_KEY }}" \
-          --env INPUT_EXPLANATION-IN="Korean" \
+          --env INPUT_CLAUDE_API_KEY="${{ secrets.CLAUDE_API_KEY }}" \
+          --env INPUT_GEMINI-API-KEY="${{ secrets.GOOGLE_API_KEY }}" \
+          --env INPUT_GROK-API-KEY="${{ secrets.XAI_API_KEY }}" \
+          --env INPUT_NVIDIA-API-KEY="${{ secrets.NVIDIA_NIM_API_KEY }}" \
+          --env INPUT_PERPLEXITY-API-KEY="${{ secrets.PERPLEXITY_API_KEY }}" \
+          --env INPUT_GITHUB_REPOSITORY="${{ github.repository }}" \
+          --env INPUT_EXPLANATION-IN="English" \
           ${{ env.image_url }} \
           python3 ai_tutor/entrypoint.py >> $GITHUB_STEP_SUMMARY
 
