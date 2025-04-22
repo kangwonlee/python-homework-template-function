@@ -117,9 +117,13 @@ jobs:
           --env INPUT_GITHUB_REPOSITORY="${{ github.repository }}" \
           --env INPUT_EXPLANATION-IN="English" \
           ${{ env.image_url }} \
-          python3 ai_tutor/entrypoint.py >> $GITHUB_STEP_SUMMARY
+          python3 ai_tutor/entrypoint.py > ./feedback.md
+      timeout-minutes: 2
 
-      timeout-minutes: 2 # TODO : before edu-base v0.2.7, check output shows up correctly
+    - name: forward feedback to summary
+      if: always()
+      run: |
+        cat ./feedback.md >> $GITHUB_STEP_SUMMARY
 
     - name: upload artifacts
       id: artifacts
@@ -130,5 +134,6 @@ jobs:
         path: |
           ./*.png
           ./*.json
+          ./feedback.md
         retention-days: 21
         overwrite: true
