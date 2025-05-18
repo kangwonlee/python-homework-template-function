@@ -61,6 +61,28 @@ __Happy coding!__
 * Click "Commit & Push."
 * Click "Back to Repository" on the branch icon to return to your repository.
 
+## Writing Descriptive Git Commit Messages
+
+* To help you develop a better coding habits, we encourage descriptive Git commit messages when committing changes to your repositroy.
+* A good commit message clearly explains what you changed and why, making it easier for you to understand your work later.
+
+### Guidelines for Commit Messages
+* Describe the change more specifically, e.g., "Add factorial function to exercise.py" or "Fix bug in sum calculation".
+* Use Action Verbs: Start with words like "Add", "Fix", "Update", or "Refactor".
+
+* Avoid Vague Messages: Messages like "update" or "fix" can be too general.
+
+* Keep It Concise: Aim for 15-50 characters, but ensure clarity.
+* Examples 예:
+  * Good: "Add unit tests for sort function in exercise.py"
+  * Bad: "update", "fix 1", "changed file"
+
+### Why It Matters
+* Clear commit messages improve collaboration, debugging, and code review in real-world projects.
+
+### Resources
+* [How to Write a Git Commit Message](https://cbea.ms/git-commit/)
+
 ## NOTICE REGARDING STUDENT SUBMISSIONS
 
 * Your submissions for this assignment may be used for various educational purposes. These purposes may include developing and improving educational tools, research, creating test cases, and training datasets.
