@@ -91,4 +91,8 @@ __Happy coding!__
 
 * If you do not wish to have your submission used for any of these purposes, please inform the instructor before the assignment deadline.
 
+## Acknowledgments
+
+* The template for this assigment is registered as a part of #C-2025-016393 in the Korea Copyright Commission.
+
 ``Until here is common to all assignments.``
