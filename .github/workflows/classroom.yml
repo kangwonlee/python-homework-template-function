@@ -37,8 +37,8 @@ jobs:
         echo "c_mnt=/app/workspace" >> $GITHUB_ENV
         if [ "${{ github.event_name }}" = "repository_dispatch" ]; then
           echo "image_url=${{ github.event.client_payload.image_url }}" >> $GITHUB_ENV
-        elif [ -n "${{ vars.PYTHON_GRADER_URL }}" ]; then
-          echo "image_url=${{ vars.PYTHON_GRADER_URL }}" >> $GITHUB_ENV
+        elif [ -n "${{ vars.ECA_HW_040 }}" ]; then
+          echo "image_url=${{ vars.ECA_HW_040 }}" >> $GITHUB_ENV
         else
           echo "image_url=ghcr.io/${{ github.repository_owner }}/python-pytest-${ASSIGNMENT_NUM}:latest" >> $GITHUB_ENV
         fi

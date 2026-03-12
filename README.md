@@ -1,63 +1,56 @@
-# Python Homework Template
-Please work on : `exercise.py`
+## One Step of the Sequential Method<br>순차법의 한 단계
 
-## Purpose 목적:
+* Exercise file 실습파일 : `exercise.py`
+* Complete function `sequential_step()` as follows.<br>함수 `sequential_step()`을 다음과 같이 완성하시오.
+* Implement one step of the sequential method<br>순차법의 한 단계를 구현하시오.
+* The sequential method is a numerical method to find a root of a function<br>순차법은 함수의 근을 찾는 수치해법임.
+* Accept following arguments<br>다음과 같은 매개변수를 받아들이시오 :
 
-Why do we want to do this assignment? What do we want to accomplish?
+argument<br>매개변수 | type<br>변수형 | description<br>설명
+:-----:|:-----:|-----
+`f` | `Callable[[float], float]` | the function that we want to find `x` satisfying $f(x)=0$<br>근을 찾고 싶은 함수<br>takes one float as input and returns a float<br>입력으로 실수 하나를 받아 들이고 결과값으로 실수 하나를 반환할 것임
+`xp` | `float` | the argument of function `f` of the previous step<br>함수 `f`의 이전 단계의 매개변수
+`delta_x` | `float` | increment of `x` (difference between `x`s of this & previous steps)<br>`x`의 증분 (이번 단계와 이전 단계의 `x`의 차이)
+`epsilon` | `float` | degree of tolerance<br>오차 허용 한계
 
-## Description 설명:
+* Calculate `x` for this step of sequential method using `xp` and `delta_x`<br>`xp`와 `delta_x`를 이용하여 순차법에서 이번 단계의 `x`를 계산하시오.
+* Logically calculate whether the `x` of this step satisfies $|f(x)| < \epsilon$ and store in a `bool` type variable `found`<br>이번 단계의 `x`가 $|f(x)| < \epsilon$를 만족하는지 논리 계산하여 `bool` 자료형 변수인 `found`에 저장하시오.
+* Return a dictionay with folliwing key-value pairs<br>다음과 같은 key-value 를 담은 `dict`를 반환하시오.
 
-* Describe homework here
+key | type of value<br>value 의 자료형 | description<br>설명
+:-----:|:-----:|-----
+`'x'` | `float` | `x` for this step of sequential method<br>순차법에서 이번 단계의 `x`
+`'found'` | `bool` | whether the `x` of this step satisfies<br>이번 단계의 `x`가 만족하는가?
 
-## Instructions 지침:
+* Withtin the file, leave lines belong to the functions only.<br>해당 파이썬 스크립트 파일에는 해당 함수만 제출 바랍니다.
+* Do not use any other modules<br>다른 모듈은 사용하지 마시오.
+* Change exercise.py file only<br>exercise.py 파일만 변경하시오.
+* See sample.py to understand how the function is used<br>함수가 어떻게 사용되는지 이해하기 위해 `sample.py` 를 참조하시오.
 
-* How to do this homework
-* `classroom.yml` file is at `.github/workflows/` folder. `.github` folder is hidden on the Linux operating system but will be visible on the Github repository.
-* Please set `vars.PYTHON_GRADER_URL` in the `classroom.yml` in the repository settings (Settings > Secrets and Variables > Actions > Variables) to your grader image (e.g., ghcr.io/your-org/python-pytest:latest).
-* Set your AI feedback natural language in `classroom.yml`.
+## Grading Criteria<br>채점 기준
 
-## Example Run 실행 예시:
+| Criteria<br>기준 | Points<br>배점 |
+|:-----:|:-----:|
+| Is the code written according to Python syntax?<br>Python 문법대로 작성되었는가? | 1 |
+| Does code respect style guidelines?<br>코드 스타일 권고사항을 준수하는가? | 1 |
+| Is the code implemented as required?<br>코드가 요구사항을 만족하는가? | 3 |
 
-* input
-```
-input example here
-```
-* output
-```
-----------
-output example here
-```
-
-## Tips 팁:
-
-* please add some more hints here
-
-__Happy coding!__
-
-## Grading Criteria 채점 기준
-
-| Criteria | Points |
-|:--------:|:------:|
-| Is the code written according to Python syntax?<br>코드가 파이썬 문법에 따라 작성되었는가? | 2 |
-| Does the code satisfy the requirements?<br>코드가 요구사항을 충족하는가? | 3 |
 
 ``From here is common to all assignments.``
 
-## Submission 제출 방법
+## How to use Github web editor<br>Github 웹 편집기 사용법
+* Press <kbd>.</kbd> key to start MS VS Code web editor<br><kbd>.</kbd> 키를 누르면 MS VS Code 의 Web version 이 시작됨
+* Make changes to the file<br>파일을 수정
+* From the left bar with the three horizontal lines at the top, (right below the magnifying glass) choose third icon, Source Control<br>왼쪽에서 줄 셋 아래 (확대경 다음) 세번째 가지치기 아이콘 선택
+* Choose filename to see changes<br>변경 사항을 보려면 파일 이름 선택
+* To stage changes to commit, choose + on the right side of the filename <br>수정 사항을 commit 등록 대상으로 add 추가 하려면 파일 이름의 오른쪽 + 기호 선택
+* Describe the changes in the blank above<br>위 빈칸에 변경 사항 설명 입력
+* Choose Commit<br>[커밋 및 푸시] 선택
+* To return to the repository, use the command in the three horizontal lines<br>줄 셋 의 [리포지토리로 이동] 선택하여 저장소로 복귀
 
-1. Modify the contents of the `exercise.py` file to write your program.<br>`exercise.py` 파일의 내용을 수정하여 프로그램을 작성합니다.
-2. Use the GitHub online editor to commit and push your changes. (See below for detailed instructions)<br>GitHub 온라인 편집기를 사용하여 수정 사항을 커밋하고 푸시합니다. (자세한 사용법은 아래 참조)
-3. At the Actions tab of your Github repository, please check the result.<br>깃헙 저장소의 Actions 탭에서 결과를 확인 바랍니다.
+## Notes
 
-## How to Use the GitHub Online Editor<br>Github 온라인 편집기 사용법
-
-* Press the <kbd>.</kbd> key while viewing the files in your repository on GitHub. This will launch a web version of VS Code.<br>저장소의 [Code] 탭을 선택 후 <kbd>.</kbd> 키를 누르면 MS VS Code 의 Web version 이 시작됨
-* Make your changes to the `exercise.py` file.<br>`exercise.py` 파일을 수정
-* To commit your changes, click on the branch icon on the left sidebar (the third icon after the magnifying glass).<br>수정 사항을 commit 등록 하려면 왼쪽에서 줄 셋 아래 (확대경 다음) 세번째 가지치기 아이콘 선택
-* Click the "+" sign next to the filename to stage your changes.<br>파일 이름의 오른쪽 + 기호 선택 (staging)
-* Write a brief description of your changes in the text box above.<br>위 빈칸에 변경 사항 설명 입력
-* Click "Commit & Push."<br>[커밋 및 푸시] 선택
-* Click "Back to Repository" on the branch icon to return to your repository.<br>줄 셋 의 [리포지토리로 이동] 선택하여 저장소로 복귀
+* This assignment was developed with the assistance of an AI language model for creative inspiration and guidance, demonstrating the potential of AI as a tool to enhance learning and problem-solving.  Students are encouraged to use AI responsibly and ethically, always prioritizing their own understanding and critical thinking.
 
 ## NOTICE REGARDING STUDENT SUBMISSIONS<br>제출 결과물에 대한 알림
 
