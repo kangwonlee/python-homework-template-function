@@ -17,7 +17,7 @@ jobs:
     if: github.actor != 'github-classroom[bot]'
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         fetch-depth: 0
 
@@ -56,7 +56,7 @@ jobs:
         echo "c_json=${{ env.c_mnt }}" >> $GITHUB_ENV
 
     - name: Login to GitHub Container Registry
-      uses: docker/login-action@v3
+      uses: docker/login-action@v4
       with:
         registry: ghcr.io
         username: ${{ github.actor }}
@@ -121,7 +121,7 @@ jobs:
 
     - name: upload artifacts
       id: artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       if: always()
       with:
         name: artifacts-${{ env.SHORT_SHA }}
