@@ -1,3 +1,14 @@
+# Thin caller for Python function assignments.
+# Delegates all logic to the shared reusable workflow in workflows-central.
+#
+# After forking to a classroom org, update the 'uses:' line below
+# to point to your org's fork of workflows-central:
+#   uses: <your-org>/workflows-central/...@<version>
+#
+# Prerequisites (set at the classroom org level):
+#   vars.INSTRUCTOR_ORG  — GitHub org/user hosting grader images
+#   secrets.CR_PAT, secrets.GOOGLE_API_KEY (or other API keys), etc.
+
 name: Autograding Tests
 on:
   - push
@@ -7,212 +18,13 @@ on:
 
 permissions:
   checks: read
-  actions: write # upload artifact
+  actions: write
   contents: read
+  issues: write   # follow-up issue tracking
 
 jobs:
-  check-environment-variables:
-    runs-on: ubuntu-latest
-    if: github.actor != 'github-classroom[bot]'
-    name: Check Environment Variables
-    env:
-      CR_PAT: ${{ secrets.CR_PAT }}
-      CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
-      GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
-      XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
-      NVIDIA_NIM_API_KEY: ${{ secrets.NVIDIA_NIM_API_KEY }}
-      PERPLEXITY_API_KEY: ${{ secrets.PERPLEXITY_API_KEY }}
-      DEFAULT_MODEL: ${{ secrets.DEFAULT_MODEL }}
-    steps:
-    - name: Check Variables
-      id: check-vars
-      run: |
-        echo "Checking required secrets..."
-        # Check CR_PAT (required)
-        if [ -z "${CR_PAT}" ]; then
-          echo "Error: Required secret CR_PAT is not set. Set it in Settings > Secrets and variables > Actions." | tee -a $GITHUB_STEP_SUMMARY
-          exit 1
-        else
-          echo "Secret CR_PAT is set."
-        fi
-        # Check DEFAULT_MODEL (warning if unset)
-        if [ -z "${DEFAULT_MODEL}" ]; then
-          echo "Warning: DEFAULT_MODEL is not set. The AI tutor will use Gemini or a single available model. Consider setting it in Settings > Secrets and variables > Actions." | tee -a $GITHUB_STEP_SUMMARY
-        else
-          echo "DEFAULT_MODEL is set."
-        fi
-        # Check API keys (at least one required)
-        echo "Checking API keys..."
-        api_keys=(
-          "CLAUDE_API_KEY"
-          "GOOGLE_API_KEY"
-          "XAI_API_KEY"
-          "NVIDIA_NIM_API_KEY"
-          "PERPLEXITY_API_KEY"
-        )
-        has_api_key=false
-        for key in "${api_keys[@]}"; do
-          if [ -n "${!key}" ]; then
-            has_api_key=true
-            break
-          fi
-        done
-        echo "Finished checking API keys..."
-        if ! $has_api_key; then
-          echo "Error: At least one API key must be set (e.g., GOOGLE_API_KEY). Set in Settings > Secrets and variables > Actions." | tee -a $GITHUB_STEP_SUMMARY
-          exit 1
-        else
-          echo "At least one API key is set."
-        fi
-
-  run-autograding-tests:
-    runs-on: ubuntu-latest
-    needs: check-environment-variables
-    if: github.actor != 'github-classroom[bot]'
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v6
-      with:
-        fetch-depth: 0
-
-    - name: Set report file names
-      id: json
-      env:
-        BUILD_IMAGE_URL: ${{ github.event.client_payload.image_url }}
-      run: |
-        ASSIGNMENT_NUM=$(echo "${{ github.repository }}" | grep -o '[/-][0-9]\{3\}' | head -1 | tr -d '/-')
-        echo "ASSIGNMENT_NUM=$ASSIGNMENT_NUM" >> $GITHUB_ENV
-        SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
-        echo "SHORT_SHA=$SHORT_SHA" >> $GITHUB_ENV
-        echo "syntax=report_syntax.json" >> $GITHUB_ENV
-        echo "style=report_style.json" >> $GITHUB_ENV
-        echo "results=report_results.json" >> $GITHUB_ENV
-        echo "workflow_student_code_folder=${{ github.workspace }}" >> $GITHUB_ENV
-        echo "c_mnt=/app/workspace" >> $GITHUB_ENV
-        if [ "${{ github.event_name }}" = "repository_dispatch" ]; then
-          echo "image_url=${{ github.event.client_payload.image_url }}" >> $GITHUB_ENV
-        elif [ -n "${{ vars.PYTHON_GRADER_??? }}" ]; then
-          echo "image_url=${{ vars.PYTHON_GRADER_??? }}" >> $GITHUB_ENV
-        else
-          echo "image_url=ghcr.io/${{ github.repository_owner }}/python-pytest-${ASSIGNMENT_NUM}:latest" >> $GITHUB_ENV
-        fi
-
-    - name: Log image URL
-      run: |
-        echo "Using IMAGE_URL: ${{ env.image_url }}"
-
-    # container json report folder has to be a location under
-    #   container mounting point
-    - name: Set folders within the container
-      run: |
-        echo "c_code=${{ env.c_mnt }}" >> $GITHUB_ENV
-        echo "c_test=/tests" >> $GITHUB_ENV
-
-    - name: Make output folder for the container
-      run: |
-        OUTPUT_NAME=output
-        OUTPUT_FOLDER=${{ runner.temp }}/$OUTPUT_NAME
-        mkdir -p $OUTPUT_FOLDER
-        if [ -d "$OUTPUT_FOLDER" ]; then
-          echo "Folder $OUTPUT_FOLDER exists."
-        else
-          echo "Error: Folder $OUTPUT_FOLDER does not exist."
-          exit 1
-        fi
-        if [ -w "$OUTPUT_FOLDER" ]; then
-          echo "Folder $OUTPUT_FOLDER is writable."
-        else
-          echo "Error: Folder $OUTPUT_FOLDER is not writable."
-          exit 1
-        fi
-        echo "WORKSPACE_OUTPUT=$OUTPUT_FOLDER" >> $GITHUB_ENV
-        echo "CONTAINER_OUTPUT=/$OUTPUT_NAME" >> $GITHUB_ENV
-
-    - name: Login to GitHub Container Registry
-      uses: docker/login-action@v4
-      with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ secrets.CR_PAT }}
-
-    - name: Pull Docker Image
-      run: docker pull ${{ env.image_url }}
-
-    - name: check syntax
-      id: check-syntax
-      uses: classroom-resources/autograding-command-grader@v1
-      with:
-        test-name: check syntax
-        setup-command: "docker run --rm --user 1001:1001 --network none --volume ${{ github.workspace }}:${{ env.c_mnt }}:ro --volume ${{ env.WORKSPACE_OUTPUT }}:${{ env.CONTAINER_OUTPUT }}:rw ${{ env.image_url }} python3 -m pip list"
-        command:       "docker run --rm --user 1001:1001 --network none --volume ${{ github.workspace }}:${{ env.c_mnt }}:ro --volume ${{ env.WORKSPACE_OUTPUT }}:${{ env.CONTAINER_OUTPUT }}:rw --env STUDENT_CODE_FOLDER=${{ env.c_code }} ${{ env.image_url }} python3 -m pytest --json-report --json-report-indent=4 --json-report-file=${{ env.CONTAINER_OUTPUT }}/${{ env.syntax }} ${{ env.c_test }}/test_syntax.py"
-        timeout: 2
-        max-score: 2
-
-    - name: check style
-      id: check-style
-      uses: classroom-resources/autograding-command-grader@v1
-      with:
-        test-name: check style
-        setup-command: "docker run --rm --user 1001:1001 --network none --volume ${{ github.workspace }}:${{ env.c_mnt }}:ro --volume ${{ env.WORKSPACE_OUTPUT }}:${{ env.CONTAINER_OUTPUT }}:rw ${{ env.image_url }} python3 -m pip list"
-        command:       "docker run --rm --user 1001:1001 --network none --volume ${{ github.workspace }}:${{ env.c_mnt }}:ro --volume ${{ env.WORKSPACE_OUTPUT }}:${{ env.CONTAINER_OUTPUT }}:rw --env STUDENT_CODE_FOLDER=${{ env.c_code }} --env GITHUB_WORKSPACE=${{ env.c_mnt }} ${{ env.image_url }} python3 -m pytest --json-report --json-report-indent=4 --json-report-file=${{ env.CONTAINER_OUTPUT }}/${{ env.style }} ${{ env.c_test }}/test_style.py"
-        timeout: 2
-        max-score: 1
-
-    - name: test results
-      id: test-results
-      uses: classroom-resources/autograding-command-grader@v1
-      with:
-        test-name: test results
-        setup-command: "docker run --rm --user 1001:1001 --network none --volume ${{ github.workspace }}:${{ env.c_mnt }}:ro --volume ${{ env.WORKSPACE_OUTPUT }}:${{ env.CONTAINER_OUTPUT }}:rw ${{ env.image_url }} python3 -m pip list"
-        command:       "docker run --rm --user 1001:1001 --network none --volume ${{ github.workspace }}:${{ env.c_mnt }}:ro --volume ${{ env.WORKSPACE_OUTPUT }}:${{ env.CONTAINER_OUTPUT }}:rw --env STUDENT_CODE_FOLDER=${{ env.c_code }} --env GITHUB_WORKSPACE=${{ env.c_mnt }} ${{ env.image_url }} python3 -m pytest -n auto --json-report --json-report-indent=4 --json-report-file=${{ env.CONTAINER_OUTPUT }}/${{ env.results }} ${{ env.c_test }}/test_results.py"
-        timeout: 5
-        max-score: 2
-
-    - name: Autograding Reporter
-      uses: classroom-resources/autograding-grading-reporter@v1
-      env:
-        CHECK-SYNTAX_RESULTS: "${{steps.check-syntax.outputs.result}}"
-        CHECK-STYLE_RESULTS: "${{steps.check-style.outputs.result}}"
-        TEST-RESULTS_RESULTS: "${{steps.test-results.outputs.result}}"
-      with:
-        runners: check-syntax,check-style,test-results
-
-    - name: AI Tutor
-      id: ai-tutor
-      if: always()
-      run: |
-        docker run --rm --user 1001:1001 \
-          --volume ${{ github.workspace }}:${{ env.c_mnt }}:ro \
-          --volume ${{ env.WORKSPACE_OUTPUT }}:${{ env.CONTAINER_OUTPUT }}:ro \
-          --env INPUT_REPORT-FILES="${{ env.CONTAINER_OUTPUT }}/${{ env.results }},${{ env.CONTAINER_OUTPUT }}/${{ env.syntax }},${{ env.CONTAINER_OUTPUT }}/${{ env.style }}" \
-          --env INPUT_STUDENT-FILES="${{ env.c_code }}/exercise.py" \
-          --env INPUT_README-PATH="${{ env.c_code }}/README.md" \
-          --env INPUT_CLAUDE_API_KEY="${{ secrets.CLAUDE_API_KEY }}" \
-          --env INPUT_GEMINI-API-KEY="${{ secrets.GOOGLE_API_KEY }}" \
-          --env INPUT_GROK-API-KEY="${{ secrets.XAI_API_KEY }}" \
-          --env INPUT_NVIDIA-API-KEY="${{ secrets.NVIDIA_NIM_API_KEY }}" \
-          --env INPUT_PERPLEXITY-API-KEY="${{ secrets.PERPLEXITY_API_KEY }}" \
-          --env INPUT_GITHUB_REPOSITORY="${{ github.repository }}" \
-          --env INPUT_MODEL="${{ secrets.DEFAULT_MODEL }}" \
-          --env INPUT_EXPLANATION-IN="English" \
-          ${{ env.image_url }} \
-          python3 ai_tutor/entrypoint.py > ${{ env.WORKSPACE_OUTPUT }}/feedback.md
-      timeout-minutes: 10
-
-    - name: forward feedback to summary
-      if: always()
-      run: |
-        cat ${{ env.WORKSPACE_OUTPUT }}/feedback.md >> $GITHUB_STEP_SUMMARY
-
-    - name: upload artifacts
-      id: artifacts
-      uses: actions/upload-artifact@v6
-      if: always()
-      with:
-        name: artifacts-${{ env.SHORT_SHA }}
-        path: |
-          ${{ env.WORKSPACE_OUTPUT }}/*.png
-          ${{ env.WORKSPACE_OUTPUT }}/*.json
-          ${{ env.WORKSPACE_OUTPUT }}/feedback.md
-        retention-days: 21
-        overwrite: true
+  grade:
+    uses: kangwonlee/workflows-central/.github/workflows/classroom-reusable.yml@v3.0.0
+    with:
+      instructor_org: ${{ vars.INSTRUCTOR_ORG }}
+    secrets: inherit
